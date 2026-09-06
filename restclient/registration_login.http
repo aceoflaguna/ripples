@@ -10,6 +10,7 @@ POST http://localhost:3000/api/auth/register HTTP/1.1
 content-type: application/json
 
 {
-    "name": "ace@gmail.com",
-    "password": "aceoflaguna"
+    "email": "ace@gmail.com",
+    "password": "SecurePass123!",
+    "confirmPassword": "SecurePass123!"
 }

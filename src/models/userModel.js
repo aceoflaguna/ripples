@@ -4,13 +4,13 @@ class UserModel {
   // Create new user
   static async createUser(email, passwordHash) {
     const query = `
-      INSERT INTO users (email, password_hash)
-      VALUES ($1, $2)
+      INSERT INTO users (email, username, password_hash)
+      VALUES ($1, $2, $3)
       RETURNING id, email, created_at
     `;
     
     try {
-      const result = await pool.query(query, [email.toLowerCase(), passwordHash]);
+      const result = await pool.query(query, [email.toLowerCase(), email.toLowerCase(), passwordHash]);
       return result.rows[0];
     } catch (error) {
       if (error.code === '23505') { // Unique violation
