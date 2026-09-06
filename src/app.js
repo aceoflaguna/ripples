@@ -2,7 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
-// import authRoutes from './routes/authRoutes.js';
+import authRoutes from './routes/authRoutes.js';
 
 class App {
   constructor() {
@@ -45,10 +45,10 @@ class App {
     });
 
     // API routes
-    // this.app.use('/api/auth', authRoutes);
+    this.app.use('/api/auth', authRoutes);
 
     // 404 handler
-    // this.app.use('/api/*', (req, res) => {
+    // this.app.use('*', (req, res) => {
     //   res.status(404).json({
     //     success: false,
     //     message: 'Route not found'
