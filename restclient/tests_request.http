@@ -1,0 +1,635 @@
+@baseUrl = http://localhost:3000/api
+@authToken = YOUR_JWT_TOKEN_HERE
+@refreshToken = YOUR_REFRESH_TOKEN_HERE
+@postId = POST_ID_HERE
+@commentId = COMMENT_ID_HERE
+@communityId = COMMUNITY_ID_HERE
+@userId = USER_ID_HERE
+
+##############################################
+# AUTH ENDPOINTS
+##############################################
+
+### Health Check
+GET http://localhost:3000/health
+
+### Register New User
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "username": "john_doe",
+  "email": "john@example.com",
+  "password": "SecurePass123!",
+  "confirmPassword": "SecurePass123!"
+}
+
+### Register Another User
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "username": "jane_smith",
+  "email": "jane@example.com",
+  "password": "SecurePass456!",
+  "confirmPassword": "SecurePass456!"
+}
+
+### Login User
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "john@example.com",
+  "password": "SecurePass123!"
+}
+
+### Login (Returns tokens - copy from response)
+# @name login
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "john@example.com",
+  "password": "SecurePass123!"
+}
+
+### Store token from login
+@authToken = {{login.response.body.data.accessToken}}
+@refreshToken = {{login.response.body.data.refreshToken}}
+
+### Refresh Token
+POST {{baseUrl}}/auth/refresh-token
+Content-Type: application/json
+
+{
+  "refreshToken": "{{refreshToken}}"
+}
+
+### Logout
+POST {{baseUrl}}/auth/logout
+Authorization: Bearer {{authToken}}
+
+### Get Current User Profile
+GET {{baseUrl}}/auth/me
+Authorization: Bearer {{authToken}}
+
+##############################################
+# USER ENDPOINTS
+##############################################
+
+### Get User Profile
+GET {{baseUrl}}/users/john_doe
+Authorization: Bearer {{authToken}}
+
+### Update User Profile
+PUT {{baseUrl}}/users/profile
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "bio": "Software developer and tech enthusiast",
+  "avatar_url": "https://example.com/avatar.jpg"
+}
+
+### Get User Stats
+GET {{baseUrl}}/users/john_doe/stats
+Authorization: Bearer {{authToken}}
+
+### Get User Posts
+GET {{baseUrl}}/users/john_doe/posts?limit=10&offset=0
+Authorization: Bearer {{authToken}}
+
+### Get User Comments
+GET {{baseUrl}}/users/john_doe/comments?limit=10&offset=0
+Authorization: Bearer {{authToken}}
+
+##############################################
+# COMMUNITY ENDPOINTS
+##############################################
+
+### Create Community
+# @name createCommunity
+POST {{baseUrl}}/communities
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "name": "programming",
+  "description": "All about programming languages and software development"
+}
+
+### Store community ID
+@communityId = {{createCommunity.response.body.data.id}}
+
+### Create Another Community
+# @name createCommunity2
+POST {{baseUrl}}/communities
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "name": "technology",
+  "description": "Latest technology news and discussions"
+}
+
+### Get All Communities
+GET {{baseUrl}}/communities?limit=10&offset=0
+
+### Get Community by ID
+GET {{baseUrl}}/communities/{{communityId}}
+
+### Get Community by Name
+GET {{baseUrl}}/communities/name/programming
+
+### Search Communities
+GET {{baseUrl}}/communities/search?q=program&limit=10
+
+### Join Community
+POST {{baseUrl}}/communities/{{communityId}}/join
+Authorization: Bearer {{authToken}}
+
+### Leave Community
+POST {{baseUrl}}/communities/{{communityId}}/leave
+Authorization: Bearer {{authToken}}
+
+### Get User's Communities
+GET {{baseUrl}}/communities/user/{{userId}}
+Authorization: Bearer {{authToken}}
+
+### Get Community Members
+GET {{baseUrl}}/communities/{{communityId}}/members?limit=20&offset=0
+
+### Update Community
+PUT {{baseUrl}}/communities/{{communityId}}
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "description": "Updated description for programming community",
+  "banner_url": "https://example.com/banner.jpg",
+  "icon_url": "https://example.com/icon.jpg"
+}
+
+##############################################
+# POST ENDPOINTS
+##############################################
+
+### Create Text Post
+# @name createPost
+POST {{baseUrl}}/posts
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "communityId": "{{communityId}}",
+  "title": "Getting Started with Node.js",
+  "content": "Node.js is a JavaScript runtime built on Chrome's V8 JavaScript engine...",
+  "type": "text"
+}
+
+### Store post ID
+@postId = {{createPost.response.body.data.id}}
+
+### Create Link Post
+# @name createLinkPost
+POST {{baseUrl}}/posts
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "communityId": "{{communityId}}",
+  "title": "Awesome Programming Resources",
+  "url": "https://github.com/sindresorhus/awesome",
+  "type": "link"
+}
+
+### Create Another Post
+POST {{baseUrl}}/posts
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "communityId": "{{communityId}}",
+  "title": "What's your favorite programming language?",
+  "content": "I'm curious to know what programming languages people prefer and why...",
+  "type": "text"
+}
+
+### Get Feed (Hot)
+GET {{baseUrl}}/posts?sortBy=hot&limit=20&offset=0
+Authorization: Bearer {{authToken}}
+
+### Get Feed (New)
+GET {{baseUrl}}/posts?sortBy=new&limit=20&offset=0
+Authorization: Bearer {{authToken}}
+
+### Get Feed (Top)
+GET {{baseUrl}}/posts?sortBy=top&limit=20&offset=0
+Authorization: Bearer {{authToken}}
+
+### Get Feed (Controversial)
+GET {{baseUrl}}/posts?sortBy=controversial&limit=20&offset=0
+Authorization: Bearer {{authToken}}
+
+### Get Post by ID
+GET {{baseUrl}}/posts/{{postId}}
+Authorization: Bearer {{authToken}}
+
+### Get Community Posts
+GET {{baseUrl}}/posts/community/{{communityId}}?sortBy=hot&limit=20&offset=0
+Authorization: Bearer {{authToken}}
+
+### Search Posts
+GET {{baseUrl}}/posts/search?q=Node.js&limit=10&offset=0
+Authorization: Bearer {{authToken}}
+
+### Update Post
+PUT {{baseUrl}}/posts/{{postId}}
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "title": "Getting Started with Node.js - Updated",
+  "content": "Updated content for the Node.js post with more detailed information..."
+}
+
+### Delete Post
+DELETE {{baseUrl}}/posts/{{postId}}
+Authorization: Bearer {{authToken}}
+
+##############################################
+# COMMENT ENDPOINTS
+##############################################
+
+### Create Comment
+# @name createComment
+POST {{baseUrl}}/comments
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "postId": "{{postId}}",
+  "content": "Great post! Very informative and helpful."
+}
+
+### Store comment ID
+@commentId = {{createComment.response.body.data.id}}
+
+### Create Reply to Comment
+# @name createReply
+POST {{baseUrl}}/comments
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "postId": "{{postId}}",
+  "parentCommentId": "{{commentId}}",
+  "content": "I agree! This is really helpful for beginners."
+}
+
+### Create Another Comment
+POST {{baseUrl}}/comments
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "postId": "{{postId}}",
+  "content": "Thanks for sharing this! I've been looking for something like this."
+}
+
+### Get Post Comments
+GET {{baseUrl}}/comments/post/{{postId}}?sortBy=best&limit=20&offset=0
+Authorization: Bearer {{authToken}}
+
+### Get Post Comments (New)
+GET {{baseUrl}}/comments/post/{{postId}}?sortBy=new&limit=20&offset=0
+Authorization: Bearer {{authToken}}
+
+### Get Post Comments (Top)
+GET {{baseUrl}}/comments/post/{{postId}}?sortBy=top&limit=20&offset=0
+Authorization: Bearer {{authToken}}
+
+### Get Comment Replies
+GET {{baseUrl}}/comments/{{commentId}}/replies?limit=10&offset=0
+Authorization: Bearer {{authToken}}
+
+### Get Comment by ID
+GET {{baseUrl}}/comments/{{commentId}}
+Authorization: Bearer {{authToken}}
+
+### Update Comment
+PUT {{baseUrl}}/comments/{{commentId}}
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "content": "Great post! Very informative and helpful. Updated comment."
+}
+
+### Delete Comment
+DELETE {{baseUrl}}/comments/{{commentId}}
+Authorization: Bearer {{authToken}}
+
+##############################################
+# VOTE ENDPOINTS
+##############################################
+
+### Upvote Post
+POST {{baseUrl}}/votes
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "postId": "{{postId}}",
+  "voteType": 1
+}
+
+### Downvote Post
+POST {{baseUrl}}/votes
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "postId": "{{postId}}",
+  "voteType": -1
+}
+
+### Remove Vote from Post
+DELETE {{baseUrl}}/votes
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "postId": "{{postId}}"
+}
+
+### Upvote Comment
+POST {{baseUrl}}/votes
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "commentId": "{{commentId}}",
+  "voteType": 1
+}
+
+### Downvote Comment
+POST {{baseUrl}}/votes
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "commentId": "{{commentId}}",
+  "voteType": -1
+}
+
+### Remove Vote from Comment
+DELETE {{baseUrl}}/votes
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "commentId": "{{commentId}}"
+}
+
+##############################################
+# COMPLETE WORKFLOW TESTS
+##############################################
+
+### Complete User Flow
+# 1. Register new user
+# @name registerNewUser
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "username": "test_user",
+  "email": "test@example.com",
+  "password": "TestPass123!",
+  "confirmPassword": "TestPass123!"
+}
+
+### 2. Login with new user
+# @name loginNewUser
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "test@example.com",
+  "password": "TestPass123!"
+}
+
+### 3. Store new user token
+@newUserToken = {{loginNewUser.response.body.data.accessToken}}
+
+### 4. Create community as new user
+# @name createTestCommunity
+POST {{baseUrl}}/communities
+Authorization: Bearer {{newUserToken}}
+Content-Type: application/json
+
+{
+  "name": "test_community",
+  "description": "A test community for workflow testing"
+}
+
+### 5. Store test community ID
+@testCommunityId = {{createTestCommunity.response.body.data.id}}
+
+### 6. Create post in test community
+# @name createTestPost
+POST {{baseUrl}}/posts
+Authorization: Bearer {{newUserToken}}
+Content-Type: application/json
+
+{
+  "communityId": "{{testCommunityId}}",
+  "title": "Test Post",
+  "content": "This is a test post for the complete workflow",
+  "type": "text"
+}
+
+### 7. Store test post ID
+@testPostId = {{createTestPost.response.body.data.id}}
+
+### 8. Create comment on test post
+# @name createTestComment
+POST {{baseUrl}}/comments
+Authorization: Bearer {{newUserToken}}
+Content-Type: application/json
+
+{
+  "postId": "{{testPostId}}",
+  "content": "This is a test comment"
+}
+
+### 9. Store test comment ID
+@testCommentId = {{createTestComment.response.body.data.id}}
+
+### 10. Upvote the post
+POST {{baseUrl}}/votes
+Authorization: Bearer {{newUserToken}}
+Content-Type: application/json
+
+{
+  "postId": "{{testPostId}}",
+  "voteType": 1
+}
+
+### 11. Upvote the comment
+POST {{baseUrl}}/votes
+Authorization: Bearer {{newUserToken}}
+Content-Type: application/json
+
+{
+  "commentId": "{{testCommentId}}",
+  "voteType": 1
+}
+
+### 12. Check post with votes
+GET {{baseUrl}}/posts/{{testPostId}}
+Authorization: Bearer {{newUserToken}}
+
+### 13. Check comments with votes
+GET {{baseUrl}}/comments/post/{{testPostId}}
+Authorization: Bearer {{newUserToken}}
+
+### 14. Clean up - Delete post
+DELETE {{baseUrl}}/posts/{{testPostId}}
+Authorization: Bearer {{newUserToken}}
+
+### 15. Clean up - Delete community
+DELETE {{baseUrl}}/communities/{{testCommunityId}}
+Authorization: Bearer {{newUserToken}}
+
+##############################################
+# ERROR HANDLING TESTS
+##############################################
+
+### Test - Register with invalid email
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "username": "invalid_user",
+  "email": "invalid-email",
+  "password": "SecurePass123!",
+  "confirmPassword": "SecurePass123!"
+}
+
+### Test - Register with weak password
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "username": "weak_password_user",
+  "email": "weak@example.com",
+  "password": "123",
+  "confirmPassword": "123"
+}
+
+### Test - Register with mismatched passwords
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "username": "mismatch_user",
+  "email": "mismatch@example.com",
+  "password": "SecurePass123!",
+  "confirmPassword": "DifferentPass123!"
+}
+
+### Test - Login with wrong credentials
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "john@example.com",
+  "password": "WrongPassword123!"
+}
+
+### Test - Access protected route without token
+POST {{baseUrl}}/communities
+Content-Type: application/json
+
+{
+  "name": "unauthorized_community",
+  "description": "This should fail"
+}
+
+### Test - Access with invalid token
+GET {{baseUrl}}/auth/me
+Authorization: Bearer invalid_token_here
+
+### Test - Create post with non-existent community
+POST {{baseUrl}}/posts
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "communityId": "00000000-0000-0000-0000-000000000000",
+  "title": "Test Post",
+  "content": "This should fail",
+  "type": "text"
+}
+
+### Test - Vote with invalid type
+POST {{baseUrl}}/votes
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "postId": "{{postId}}",
+  "voteType": 2
+}
+
+### Test - Get non-existent post
+GET {{baseUrl}}/posts/00000000-0000-0000-0000-000000000000
+Authorization: Bearer {{authToken}}
+
+### Test - Update someone else's post
+PUT {{baseUrl}}/posts/{{postId}}
+Authorization: Bearer {{newUserToken}}
+Content-Type: application/json
+
+{
+  "title": "Trying to update someone else's post"
+}
+
+##############################################
+# PAGINATION TESTS
+##############################################
+
+### Get first page of posts (limit 10)
+GET {{baseUrl}}/posts?sortBy=new&limit=10&offset=0
+Authorization: Bearer {{authToken}}
+
+### Get second page of posts (limit 10, offset 10)
+GET {{baseUrl}}/posts?sortBy=new&limit=10&offset=10
+Authorization: Bearer {{authToken}}
+
+### Get first page of communities (limit 5)
+GET {{baseUrl}}/communities?limit=5&offset=0
+
+### Get second page of communities (limit 5, offset 5)
+GET {{baseUrl}}/communities?limit=5&offset=5
+
+### Get comments with pagination
+GET {{baseUrl}}/comments/post/{{postId}}?sortBy=best&limit=5&offset=0
+Authorization: Bearer {{authToken}}
+
+##############################################
+# SEARCH TESTS
+##############################################
+
+### Search all posts with term
+GET {{baseUrl}}/posts/search?q=Node.js&limit=10
+Authorization: Bearer {{authToken}}
+
+### Search communities with term
+GET {{baseUrl}}/communities/search?q=program&limit=10
+
+### Search with no results
+GET {{baseUrl}}/posts/search?q=nonexistentterm12345&limit=10
+Authorization: Bearer {{authToken}}
