@@ -48,12 +48,12 @@ class App {
     this.app.use('/api/auth', authRoutes);
 
     // 404 handler
-    // this.app.use('*', (req, res) => {
-    //   res.status(404).json({
-    //     success: false,
-    //     message: 'Route not found'
-    //   });
-    // });
+    this.app.use((req, res) => {
+      res.status(404).json({
+        success: false,
+        message: 'Route not found'
+      });
+    });
   }
 
   setupErrorHandling() {
