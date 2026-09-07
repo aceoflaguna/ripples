@@ -1,6 +1,7 @@
 import UserModel from '../models/userModel.js';
 import PasswordUtils from '../utils/passwordUtils.js';
-import JWTUtils from '../utils/jwtUtils.js';
+import SessionUtils from '../utils/sessionUtils.js';
+import SessionModel from '../models/sessionModel.js';
 
 class AuthController {
   // Register new user
@@ -32,8 +33,11 @@ class AuthController {
       // Create user
       const user = await UserModel.createUser(username, email, passwordHash);
 
-      // Generate tokens for automatic login after registration
-      const tokens = JWTUtils.generateTokens(user);
+      // Extract request metadata
+      const metadata = SessionUtils.extractRequestMetadata(req);
+
+      // Create session with tokens
+      const sessionData = await SessionUtils.createSession(user, metadata);
 
       // Update last login
       await UserModel.updateLastLogin(user.id);
@@ -49,7 +53,7 @@ class AuthController {
             email: user.email,
             created_at: user.created_at
           },
-          ...tokens
+          ...sessionData
         }
       });
     } catch (error) {
@@ -96,13 +100,15 @@ class AuthController {
       // Check if password needs rehash
       const needsRehash = await PasswordUtils.needsRehash(user.password_hash);
       if (needsRehash) {
-        // Rehash password with current parameters
         const newHash = await PasswordUtils.hashPassword(password);
         await UserModel.updatePassword(user.id, newHash);
       }
 
-      // Generate tokens
-      const tokens = JWTUtils.generateTokens(user);
+      // Extract request metadata
+      const metadata = SessionUtils.extractRequestMetadata(req);
+
+      // Create session with tokens
+      const sessionData = await SessionUtils.createSession(user, metadata);
 
       // Update last login
       await UserModel.updateLastLogin(user.id);
@@ -121,7 +127,7 @@ class AuthController {
             karma: user.karma,
             created_at: user.created_at
           },
-          ...tokens
+          ...sessionData
         }
       });
     } catch (error) {
@@ -146,34 +152,11 @@ class AuthController {
         });
       }
 
-      // Verify refresh token
-      const decoded = JWTUtils.verifyRefreshToken(refreshToken);
-      if (!decoded) {
-        return res.status(401).json({
-          success: false,
-          message: 'Invalid or expired refresh token'
-        });
-      }
+      // Extract request metadata
+      const metadata = SessionUtils.extractRequestMetadata(req);
 
-      // Get user from database
-      const user = await UserModel.findById(decoded.id);
-      if (!user) {
-        return res.status(401).json({
-          success: false,
-          message: 'User not found'
-        });
-      }
-
-      // Check if user is active
-      if (!user.is_active) {
-        return res.status(403).json({
-          success: false,
-          message: 'Account is deactivated'
-        });
-      }
-
-      // Generate new tokens
-      const tokens = JWTUtils.generateTokens(user);
+      // Refresh session with token rotation
+      const tokens = await SessionUtils.refreshSession(refreshToken, metadata);
 
       res.status(200).json({
         success: true,
@@ -182,6 +165,21 @@ class AuthController {
       });
     } catch (error) {
       console.error('Refresh token error:', error);
+      
+      if (error.message === 'Invalid refresh token') {
+        return res.status(401).json({
+          success: false,
+          message: 'Invalid refresh token'
+        });
+      }
+      
+      if (error.message === 'Session not found or expired') {
+        return res.status(401).json({
+          success: false,
+          message: 'Session expired. Please login again.'
+        });
+      }
+      
       res.status(500).json({
         success: false,
         message: 'Failed to refresh token'
@@ -192,10 +190,22 @@ class AuthController {
   // Logout user
   static async logout(req, res, next) {
     try {
-      // In a stateless JWT system, logout is handled client-side
-      // by removing tokens. However, we can implement token blacklisting
-      // for additional security if needed.
+      const { refreshToken } = req.body;
+      const authHeader = req.headers.authorization;
       
+      if (authHeader && authHeader.startsWith('Bearer ')) {
+        const accessToken = authHeader.split(' ')[1];
+        
+        // Find and revoke session by access token
+        const session = await SessionModel.findByAccessToken(accessToken);
+        if (session) {
+          await SessionModel.revokeSession(session.id, 'logout');
+        }
+      } else if (refreshToken) {
+        // Revoke by refresh token
+        await SessionModel.revokeByRefreshToken(refreshToken, 'logout');
+      }
+
       res.status(200).json({
         success: true,
         message: 'Logged out successfully'
@@ -205,6 +215,71 @@ class AuthController {
       res.status(500).json({
         success: false,
         message: 'Failed to logout'
+      });
+    }
+  }
+
+  // Get current user sessions
+  static async getUserSessions(req, res) {
+    try {
+      const sessions = await SessionModel.getUserSessions(req.userId);
+      
+      res.status(200).json({
+        success: true,
+        data: sessions
+      });
+    } catch (error) {
+      console.error('Get user sessions error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch sessions'
+      });
+    }
+  }
+
+  // Revoke specific session
+  static async revokeSession(req, res) {
+    try {
+      const { sessionId } = req.params;
+      
+      const session = await SessionModel.revokeSession(sessionId, 'manual_revocation');
+      
+      if (!session) {
+        return res.status(404).json({
+          success: false,
+          message: 'Session not found'
+        });
+      }
+
+      res.status(200).json({
+        success: true,
+        message: 'Session revoked successfully'
+      });
+    } catch (error) {
+      console.error('Revoke session error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to revoke session'
+      });
+    }
+  }
+
+  // Revoke all sessions
+  static async revokeAllSessions(req, res) {
+    try {
+      const { reason = 'security_concern' } = req.body;
+      
+      await SessionModel.revokeAllUserSessions(req.userId, reason);
+
+      res.status(200).json({
+        success: true,
+        message: 'All sessions revoked successfully'
+      });
+    } catch (error) {
+      console.error('Revoke all sessions error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to revoke sessions'
       });
     }
   }
@@ -221,7 +296,6 @@ class AuthController {
         });
       }
 
-      // Get user stats
       const stats = await UserModel.getUserStats(req.userId);
 
       res.status(200).json({

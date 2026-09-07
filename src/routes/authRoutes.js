@@ -28,16 +28,14 @@ router.post(
 );
 
 // Protected routes
-router.post(
-  '/logout',
-  AuthMiddleware.authenticate,
-  AuthController.logout
-);
+router.use(AuthMiddleware.authenticate);
 
-router.get(
-  '/me',
-  AuthMiddleware.authenticate,
-  AuthController.getCurrentUser
-);
+router.post('/logout', AuthController.logout);
+router.get('/me', AuthController.getCurrentUser);
+
+// Session management routes
+router.get('/sessions', AuthController.getUserSessions);
+router.delete('/sessions/:sessionId', AuthController.revokeSession);
+router.delete('/sessions', AuthController.revokeAllSessions);
 
 export default router;

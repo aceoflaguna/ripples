@@ -1,0 +1,85 @@
+@baseUrl = http://localhost:3000/api
+@authToken = YOUR_JWT_TOKEN_HERE
+@refreshToken = YOUR_REFRESH_TOKEN_HERE
+@postId = POST_ID_HERE
+@commentId = COMMENT_ID_HERE
+@communityId = COMMUNITY_ID_HERE
+@userId = USER_ID_HERE
+
+
+##############################################
+# SESSION MANAGEMENT TESTS
+##############################################
+
+### Register User with Session
+# @name registerWithSession
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "username": "john_doe",
+  "email": "john@example.com",
+  "password": "SecurePass123!",
+  "confirmPassword": "SecurePass123!"
+}
+
+### Store session tokens
+@sessionAccessToken = {{registerWithSession.response.body.data.accessToken}}
+@sessionRefreshToken = {{registerWithSession.response.body.data.refreshToken}}
+@sessionId = {{registerWithSession.response.body.data.sessionId}}
+
+### Get Current User Sessions
+GET {{baseUrl}}/auth/sessions
+Authorization: Bearer {{sessionAccessToken}}
+
+### Revoke Specific Session
+DELETE {{baseUrl}}/auth/sessions/{{sessionId}}
+Authorization: Bearer {{sessionAccessToken}}
+
+### Test Access After Session Revocation (should fail)
+GET {{baseUrl}}/auth/me
+Authorization: Bearer {{sessionAccessToken}}
+
+### Login Again to Create New Session
+# @name loginAgain
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "john@example.com",
+  "password": "SecurePass123!"
+}
+
+### Store new session tokens
+@sessionAccessToken = {{loginAgain.response.body.data.accessToken}}
+@sessionRefreshToken = {{loginAgain.response.body.data.refreshToken}}
+
+### Revoke All Sessions
+DELETE {{baseUrl}}/auth/sessions
+Authorization: Bearer {{sessionAccessToken}}
+Content-Type: application/json
+
+{
+  "reason": "security_concern"
+}
+
+### Refresh Token with Session Rotation
+# @name refreshSession
+POST {{baseUrl}}/auth/refresh-token
+Content-Type: application/json
+
+{
+  "refreshToken": "{{sessionRefreshToken}}"
+}
+
+### Store rotated tokens
+@sessionAccessToken = {{refreshSession.response.body.data.accessToken}}
+@sessionRefreshToken = {{refreshSession.response.body.data.refreshToken}}
+
+### Test Old Refresh Token (should fail due to rotation)
+POST {{baseUrl}}/auth/refresh-token
+Content-Type: application/json
+
+{
+  "refreshToken": "{{loginAgain.response.body.data.refreshToken}}"
+}

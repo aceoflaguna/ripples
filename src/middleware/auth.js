@@ -1,5 +1,6 @@
 import JWTUtils from '../utils/jwtUtils.js';
 import UserModel from '../models/userModel.js';
+import SessionModel from '../models/sessionModel.js';
 
 class AuthMiddleware {
   static async authenticate(req, res, next) {
@@ -23,6 +24,15 @@ class AuthMiddleware {
         });
       }
 
+      // Check if session exists and is active
+      const session = await SessionModel.findByAccessToken(token);
+      if (!session) {
+        return res.status(401).json({
+          success: false,
+          message: 'Session not found or expired'
+        });
+      }
+
       const user = await UserModel.findById(decoded.id);
       
       if (!user) {
@@ -39,8 +49,12 @@ class AuthMiddleware {
         });
       }
 
+      // Update session last used
+      await SessionModel.updateLastUsed(session.id);
+
       req.user = user;
       req.userId = user.id;
+      req.sessionId = session.id;
       next();
     } catch (error) {
       console.error('Authentication error:', error);
@@ -63,10 +77,17 @@ class AuthMiddleware {
       const decoded = JWTUtils.verifyAccessToken(token);
 
       if (decoded) {
-        const user = await UserModel.findById(decoded.id);
-        if (user && user.is_active) {
-          req.user = user;
-          req.userId = user.id;
+        const session = await SessionModel.findByAccessToken(token);
+        if (session) {
+          const user = await UserModel.findById(decoded.id);
+          if (user && user.is_active) {
+            req.user = user;
+            req.userId = user.id;
+            req.sessionId = session.id;
+            
+            // Update session last used
+            await SessionModel.updateLastUsed(session.id);
+          }
         }
       }
       
@@ -74,26 +95,6 @@ class AuthMiddleware {
     } catch (error) {
       next();
     }
-  }
-
-  static authorizeRoles(...roles) {
-    return (req, res, next) => {
-      if (!req.user) {
-        return res.status(401).json({
-          success: false,
-          message: 'Authentication required'
-        });
-      }
-
-      if (!roles.includes(req.user.role)) {
-        return res.status(403).json({
-          success: false,
-          message: 'Insufficient permissions'
-        });
-      }
-
-      next();
-    };
   }
 }
 
