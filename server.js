@@ -27,3 +27,9 @@ process.on('SIGTERM', () => {
     process.exit(0);
   });
 });
+
+
+import SessionCleanup from './src/utils/sessionCleanup.js';
+
+// Start session cleanup scheduler
+SessionCleanup.startCleanupScheduler();
