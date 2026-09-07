@@ -201,3 +201,50 @@ CREATE TRIGGER update_comment_replies
     AFTER INSERT OR DELETE ON comments
     FOR EACH ROW
     EXECUTE FUNCTION update_comment_reply_count();
+
+-- Create sessions table for managing user sessions and refresh tokens
+CREATE TABLE IF NOT EXISTS user_sessions (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    refresh_token TEXT NOT NULL,
+    access_token TEXT,
+    user_agent TEXT,
+    ip_address INET,
+    device_info TEXT,
+    is_active BOOLEAN DEFAULT TRUE,
+    expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    last_used_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    revoked_at TIMESTAMP WITH TIME ZONE,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    revocation_reason VARCHAR(50),
+    CONSTRAINT valid_revocation_reason CHECK (
+        revocation_reason IS NULL OR 
+        revocation_reason IN ('logout', 'password_change', 'account_deleted', 'security_concern', 'manual_revocation')
+    )
+);
+
+-- Create indexes for faster session lookups
+CREATE INDEX idx_sessions_user ON user_sessions(user_id);
+CREATE INDEX idx_sessions_refresh_token ON user_sessions(refresh_token);
+CREATE INDEX idx_sessions_expires ON user_sessions(expires_at);
+CREATE INDEX idx_sessions_active ON user_sessions(is_active) WHERE is_active = TRUE;
+
+-- Create trigger for updated_at
+CREATE TRIGGER update_sessions_updated_at
+    BEFORE UPDATE ON user_sessions
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
+
+-- Create function to clean up expired sessions
+CREATE OR REPLACE FUNCTION cleanup_expired_sessions()
+RETURNS void AS $$
+BEGIN
+    UPDATE user_sessions 
+    SET is_active = FALSE, 
+        revoked_at = CURRENT_TIMESTAMP,
+        revocation_reason = 'expired'
+    WHERE expires_at < CURRENT_TIMESTAMP 
+      AND is_active = TRUE;
+END;
+$$ language 'plpgsql';
