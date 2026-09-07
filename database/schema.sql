@@ -103,7 +103,19 @@ CREATE TABLE votes (
     UNIQUE(user_id, post_id, comment_id)
 );
 
+-- Create user follows table (optional feature)
+CREATE TABLE IF NOT EXISTS user_follows (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    follower_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    following_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(follower_id, following_id),
+    CONSTRAINT no_self_follow CHECK (follower_id != following_id)
+);
+
 -- Create indexes
+CREATE INDEX idx_user_follows_follower ON user_follows(follower_id);
+CREATE INDEX idx_user_follows_following ON user_follows(following_id);
 CREATE INDEX idx_users_username ON users(username);
 CREATE INDEX idx_users_email ON users(email);
 CREATE INDEX idx_communities_name ON communities(name);
