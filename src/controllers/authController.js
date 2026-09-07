@@ -5,7 +5,7 @@ class AuthController {
   // Register new user
   static async register(req, res, next) {
     try {
-      const { email, password } = req.body;
+      const { username, email, password } = req.body;
 
       // Check if user already exists
       const existingUser = await UserModel.findByEmail(email);
@@ -20,7 +20,7 @@ class AuthController {
       const passwordHash = await PasswordUtils.hashPassword(password);
 
       // Create user
-      const user = await UserModel.createUser(email, passwordHash);
+      const user = await UserModel.createUser(username, email, passwordHash);
 
       // Return success response (exclude sensitive data)
       res.status(201).json({

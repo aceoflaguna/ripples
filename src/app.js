@@ -34,7 +34,7 @@ class App {
     this.app.get('/health', (req, res) => {
       res.status(200).json({
         success: true,
-        message: 'Reddit clone API is running',
+        message: 'Ripples API is running',
         timestamp: new Date().toISOString()
       });
     });

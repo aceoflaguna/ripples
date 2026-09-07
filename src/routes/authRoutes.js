@@ -7,6 +7,10 @@ const router = express.Router();
 // Registration route
 router.post(
   '/register',
+    (req, res, next) => {
+    console.log('POST /register body:', req.body);
+    next();
+  },
   ValidationMiddleware.registerValidation(),
   ValidationMiddleware.validate,
   AuthController.register

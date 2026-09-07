@@ -64,6 +64,35 @@ class ValidationMiddleware {
     }
     next();
   }
+
+  // Validation rules for updating profile
+  static updateProfileValidation() {
+    return [
+      body('username')
+        .optional()
+        .isString()
+        .withMessage('Username must be a string')
+        .isLength({ min: 3, max: 20 })
+        .withMessage('Username must be between 3 and 20 characters')
+        .matches(/^[a-zA-Z0-9_]+$/)
+        .withMessage('Username can only contain letters, numbers, and underscores'),
+      
+      body('bio')
+        .optional()
+        .isString()
+        .withMessage('Bio must be a string')
+        .isLength({ max: 500 })
+        .withMessage('Bio must be 500 characters or less'),
+      
+      body('avatar_url')
+        .optional()
+        .isURL()
+        .withMessage('Avatar must be a valid URL')
+    ];
+  }
+
 }
+
+
 
 export default ValidationMiddleware;
