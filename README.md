@@ -1,6 +1,6 @@
-# RDB - Reddit-like Social Network API
+# Ripples - a social media platform and online forum network
 
-A full-featured social network API inspired by Reddit, built with Node.js, Express, PostgreSQL, and Argon2 password hashing. This application provides a robust backend for creating communities, sharing posts, engaging in discussions through nested comments, and voting on content.
+A full-featured social media platform and online forum network, built with Node.js, Express, PostgreSQL, and Argon2 password hashing. This application provides a robust backend for creating communities, sharing posts, engaging in discussions through nested comments, and voting on content.
 
 ## 📋 Table of Contents
 
@@ -29,7 +29,7 @@ A full-featured social network API inspired by Reddit, built with Node.js, Expre
 - Account activation/deactivation
 
 ### Communities
-- Create and manage communities (subreddits)
+- Create and manage communities
 - Join and leave communities
 - Community roles (member, moderator, admin)
 - Community search and discovery

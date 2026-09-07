@@ -25,7 +25,7 @@ CREATE TABLE users (
     email_verified BOOLEAN DEFAULT FALSE
 );
 
--- Create communities table (subreddits)
+-- Create communities table
 CREATE TABLE communities (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     name VARCHAR(50) UNIQUE NOT NULL,
