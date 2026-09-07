@@ -189,7 +189,7 @@ Expected response:
 ```json
 {
   "success": true,
-  "message": "Reddit clone API is running",
+  "message": "Ripples API is running",
   "timestamp": "2024-01-01T12:00:00.000Z"
 }
 ```
