@@ -677,3 +677,95 @@ GET {{baseUrl}}/communities/search?q=program&limit=10
 ### Search with no results
 GET {{baseUrl}}/posts/search?q=nonexistentterm12345&limit=10
 Authorization: Bearer {{authToken}}
+
+
+
+##############################################
+# JWT AUTHENTICATION TESTS
+##############################################
+
+### Register User with JWT Response
+# @name registerWithJWT
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "username": "jwt_test_user",
+  "email": "jwt.test@example.com",
+  "password": "SecurePass123!",
+  "confirmPassword": "SecurePass123!"
+}
+
+### Store JWT tokens from registration
+@jwtAccessToken = {{registerWithJWT.response.body.data.accessToken}}
+@jwtRefreshToken = {{registerWithJWT.response.body.data.refreshToken}}
+
+### Login with JWT Response
+# @name loginWithJWT
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "jwt.test@example.com",
+  "password": "SecurePass123!"
+}
+
+### Store new JWT tokens from login
+@jwtAccessToken = {{loginWithJWT.response.body.data.accessToken}}
+@jwtRefreshToken = {{loginWithJWT.response.body.data.refreshToken}}
+
+### Refresh Token
+# @name refreshJWT
+POST {{baseUrl}}/auth/refresh-token
+Content-Type: application/json
+
+{
+  "refreshToken": "{{jwtRefreshToken}}"
+}
+
+### Store refreshed tokens
+@jwtAccessToken = {{refreshJWT.response.body.data.accessToken}}
+@jwtRefreshToken = {{refreshJWT.response.body.data.refreshToken}}
+
+### Get Current User with JWT
+GET {{baseUrl}}/auth/me
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjJhYjVkNzgxLWE0OGItNDI3NC1hODFjLWFiY2Q2ZTI2Mzk2ZCIsInR5cGUiOiJyZWZyZXNoIiwidG9rZW5WZXJzaW9uIjowLCJpYXQiOjE3ODg3NTg0NDYsImV4cCI6MTc4OTM2MzI0Nn0.cIIgnqNC5dENl4Erd-k1-8CwguVdkqFCtlh-s1EAPjU
+
+### Get Current User with JWT
+GET {{baseUrl}}/auth/me
+Authorization: Bearer {{jwtAccessToken}}
+
+### Test Protected Route with JWT
+GET {{baseUrl}}/users/me/profile
+Authorization: Bearer {{jwtAccessToken}}
+
+### Test Invalid JWT Token
+GET {{baseUrl}}/auth/me
+Authorization: Bearer invalid.jwt.token
+
+### Test Expired JWT Token (using an expired token)
+GET {{baseUrl}}/auth/me
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjEyMzQ1Njc4OTAiLCJ1c2VybmFtZSI6InRlc3QiLCJlbWFpbCI6InRlc3RAdGVzdC5jb20iLCJ0eXBlIjoiYWNjZXNzIiwiaWF0IjoxNTE2MjM5MDIyLCJleHAiOjE1MTYyMzkwMjJ9.3pKZJ9Qz5X5Y5Y5Y5Y5Y5Y5Y5Y5Y5Y5Y5Y5Y5Y5Y
+
+### Test Missing Refresh Token
+POST {{baseUrl}}/auth/refresh-token
+Content-Type: application/json
+
+{
+}
+
+### Test Invalid Refresh Token
+POST {{baseUrl}}/auth/refresh-token
+Content-Type: application/json
+
+{
+  "refreshToken": "invalid.refresh.token"
+}
+
+### Test Logout with JWT
+POST {{baseUrl}}/auth/logout
+Authorization: Bearer {{jwtAccessToken}}
+
+### Test Access After Logout (should fail since token is removed client-side)
+GET {{baseUrl}}/auth/me
+Authorization: Bearer {{jwtAccessToken}}

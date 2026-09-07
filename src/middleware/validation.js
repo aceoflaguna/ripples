@@ -5,14 +5,18 @@ class ValidationMiddleware {
   // Validation rules for registration
   static registerValidation() {
     return [
+      body('username')
+        .isString()
+        .withMessage('Username must be a string')
+        .isLength({ min: 3, max: 20 })
+        .withMessage('Username must be between 3 and 20 characters')
+        .matches(/^[a-zA-Z0-9_]+$/)
+        .withMessage('Username can only contain letters, numbers, and underscores'),
+      
       body('email')
         .isEmail()
         .withMessage('Please provide a valid email address')
-        .normalizeEmail()
-        .custom(value => {
-          if (!value) return false;
-          return true;
-        }),
+        .normalizeEmail(),
       
       body('password')
         .isString()
@@ -49,20 +53,15 @@ class ValidationMiddleware {
     ];
   }
 
-  // Check validation results
-  static validate(req, res, next) {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({
-        success: false,
-        message: 'Validation failed',
-        errors: errors.array().map(err => ({
-          field: err.param,
-          message: err.msg
-        }))
-      });
-    }
-    next();
+  // Validation rules for refresh token
+  static refreshTokenValidation() {
+    return [
+      body('refreshToken')
+        .notEmpty()
+        .withMessage('Refresh token is required')
+        .isString()
+        .withMessage('Refresh token must be a string')
+    ];
   }
 
   // Validation rules for updating profile
@@ -91,8 +90,21 @@ class ValidationMiddleware {
     ];
   }
 
+  // Check validation results
+  static validate(req, res, next) {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Validation failed',
+        errors: errors.array().map(err => ({
+          field: err.param,
+          message: err.msg
+        }))
+      });
+    }
+    next();
+  }
 }
-
-
 
 export default ValidationMiddleware;
