@@ -77,34 +77,34 @@ class SessionModel {
   }
 
   // Get all active sessions for a user
-  static async getUserSessions(userId) {
-    const query = `
-      SELECT 
-        id,
-        user_agent,
-        ip_address,
-        device_info,
-        is_active,
-        expires_at,
-        last_used_at,
-        created_at,
-        revoked_at,
-        revocation_reason
-      FROM user_sessions 
-      WHERE user_id = $1 
-        AND is_active = TRUE
-        AND expires_at > CURRENT_TIMESTAMP
-      ORDER BY last_used_at DESC
-    `;
+  // static async getUserSessions(userId) {
+  //   const query = `
+  //     SELECT 
+  //       id,
+  //       user_agent,
+  //       ip_address,
+  //       device_info,
+  //       is_active,
+  //       expires_at,
+  //       last_used_at,
+  //       created_at,
+  //       revoked_at,
+  //       revocation_reason
+  //     FROM user_sessions 
+  //     WHERE user_id = $1 
+  //       AND is_active = TRUE
+  //       AND expires_at > CURRENT_TIMESTAMP
+  //     ORDER BY last_used_at DESC
+  //   `;
     
-    try {
-      const result = await pool.query(query, [userId]);
-      return result.rows;
-    } catch (error) {
-      console.error('Get user sessions error:', error);
-      throw error;
-    }
-  }
+  //   try {
+  //     const result = await pool.query(query, [userId]);
+  //     return result.rows;
+  //   } catch (error) {
+  //     console.error('Get user sessions error:', error);
+  //     throw error;
+  //   }
+  // }
 
   // Update session last used timestamp
   static async updateLastUsed(sessionId, accessToken = null) {
@@ -125,7 +125,7 @@ class SessionModel {
     }
   }
 
-  // Revoke a specific session
+  // logout a specific session
   static async revokeSession(sessionId, reason = 'logout') {
     const query = `
       UPDATE user_sessions 
