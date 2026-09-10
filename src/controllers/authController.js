@@ -190,7 +190,7 @@ class AuthController {
   // Logout user
   static async logout(req, res, next) {
     try {
-      const { refreshToken } = req.body;
+      const { refreshToken } = req.body || {};
       const authHeader = req.headers.authorization;
       
       if (authHeader && authHeader.startsWith('Bearer ')) {
@@ -220,69 +220,69 @@ class AuthController {
   }
 
   // Get current user sessions
-  static async getUserSessions(req, res) {
-    try {
-      const sessions = await SessionModel.getUserSessions(req.userId);
+  // static async getUserSessions(req, res) {
+  //   try {
+  //     const sessions = await SessionModel.getUserSessions(req.userId);
       
-      res.status(200).json({
-        success: true,
-        data: sessions
-      });
-    } catch (error) {
-      console.error('Get user sessions error:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Failed to fetch sessions'
-      });
-    }
-  }
+  //     res.status(200).json({
+  //       success: true,
+  //       data: sessions
+  //     });
+  //   } catch (error) {
+  //     console.error('Get user sessions error:', error);
+  //     res.status(500).json({
+  //       success: false,
+  //       message: 'Failed to fetch sessions'
+  //     });
+  //   }
+  // }
 
   // Revoke specific session
-  static async revokeSession(req, res) {
-    try {
-      const { sessionId } = req.params;
+  // static async revokeSession(req, res) {
+  //   try {
+  //     const { sessionId } = req.params;
       
-      const session = await SessionModel.revokeSession(sessionId, 'manual_revocation');
+  //     const session = await SessionModel.revokeSession(sessionId, 'manual_revocation');
       
-      if (!session) {
-        return res.status(404).json({
-          success: false,
-          message: 'Session not found'
-        });
-      }
+  //     if (!session) {
+  //       return res.status(404).json({
+  //         success: false,
+  //         message: 'Session not found'
+  //       });
+  //     }
 
-      res.status(200).json({
-        success: true,
-        message: 'Session revoked successfully'
-      });
-    } catch (error) {
-      console.error('Revoke session error:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Failed to revoke session'
-      });
-    }
-  }
+  //     res.status(200).json({
+  //       success: true,
+  //       message: 'Session revoked successfully'
+  //     });
+  //   } catch (error) {
+  //     console.error('Revoke session error:', error);
+  //     res.status(500).json({
+  //       success: false,
+  //       message: 'Failed to revoke session'
+  //     });
+  //   }
+  // }
 
   // Revoke all sessions
-  static async revokeAllSessions(req, res) {
-    try {
-      const { reason = 'security_concern' } = req.body;
+  // static async revokeAllSessions(req, res) {
+  //   try {
+  //     const { reason = 'security_concern' } = req.body;
       
-      await SessionModel.revokeAllUserSessions(req.userId, reason);
+  //     await SessionModel.revokeAllUserSessions(req.userId, reason);
 
-      res.status(200).json({
-        success: true,
-        message: 'All sessions revoked successfully'
-      });
-    } catch (error) {
-      console.error('Revoke all sessions error:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Failed to revoke sessions'
-      });
-    }
-  }
+  //     res.status(200).json({
+  //       success: true,
+  //       message: 'All sessions revoked successfully'
+  //     });
+  //   } catch (error) {
+  //     console.error('Revoke all sessions error:', error);
+  //     res.status(500).json({
+  //       success: false,
+  //       message: 'Failed to revoke sessions'
+  //     });
+  //   }
+  // }
 
   // Get current user
   static async getCurrentUser(req, res, next) {
