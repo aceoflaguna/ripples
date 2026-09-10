@@ -248,3 +248,15 @@ BEGIN
       AND is_active = TRUE;
 END;
 $$ language 'plpgsql';
+
+
+-- UPDATE user_sessions
+ALTER TABLE user_sessions
+DROP CONSTRAINT valid_revocation_reason;
+
+
+ALTER TABLE user_sessions
+ADD CONSTRAINT valid_revocation_reason CHECK (
+    revocation_reason IS NULL OR
+    revocation_reason IN ('logout', 'password_change', 'account_deleted', 'security_concern', 'manual_revocation', 'token_rotation')
+);
