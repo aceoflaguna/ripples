@@ -220,7 +220,7 @@ CREATE TABLE IF NOT EXISTS user_sessions (
     revocation_reason VARCHAR(50),
     CONSTRAINT valid_revocation_reason CHECK (
         revocation_reason IS NULL OR 
-        revocation_reason IN ('logout', 'password_change', 'account_deleted', 'security_concern', 'manual_revocation')
+        revocation_reason IN ('logout', 'password_change', 'account_deleted', 'security_concern', 'manual_revocation', 'token_rotation')
     )
 );
 
@@ -250,7 +250,7 @@ END;
 $$ language 'plpgsql';
 
 
--- UPDATE user_sessions
+-- OPTIONAL UPDATE user_sessions
 ALTER TABLE user_sessions
 DROP CONSTRAINT valid_revocation_reason;
 
