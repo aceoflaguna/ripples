@@ -37,7 +37,8 @@ class AuthController {
       const metadata = SessionUtils.extractRequestMetadata(req);
 
       // Create session with tokens
-      const sessionData = await SessionUtils.createSession(user, metadata);
+      // stop creating session for now, as we might want to handle email verification first
+      // const sessionData = await SessionUtils.createSession(user, metadata);
 
       // Update last login
       await UserModel.updateLastLogin(user.id);
@@ -53,7 +54,7 @@ class AuthController {
             email: user.email,
             created_at: user.created_at
           },
-          ...sessionData
+          // ...sessionData
         }
       });
     } catch (error) {
