@@ -205,7 +205,6 @@ class UserController {
 
       const posts = await PostModel.getUserPosts(
         user.id,
-        sortBy,
         parseInt(limit),
         parseInt(offset)
       );
@@ -257,7 +256,6 @@ class UserController {
 
       const comments = await CommentModel.getUserComments(
         user.id,
-        sortBy,
         parseInt(limit),
         parseInt(offset)
       );

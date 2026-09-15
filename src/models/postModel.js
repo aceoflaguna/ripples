@@ -127,6 +127,23 @@ class PostModel {
     return result.rows;
   }
 
+  static async getUserPostCount(userId) {
+    const query = `
+      SELECT COUNT(*)::int AS post_count
+      FROM posts
+      WHERE author_id = $1 AND is_deleted = FALSE
+    `;
+    
+    try {
+      const result = await pool.query(query, [userId]);
+      return result.rows[0].post_count;
+    } catch (error) {
+      console.error('Error getting user post count:', error);
+      throw error;
+    }
+  }
+
+
   static async update(id, updates) {
     const allowedFields = ['title', 'content', 'url'];
     const updateFields = [];
