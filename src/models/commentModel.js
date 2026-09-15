@@ -183,6 +183,23 @@ class CommentModel {
     return result.rows;
   }
 
+  // Get comments numbers
+  static async getUserCommentCount(userId) {
+    const query = `
+      SELECT COUNT(*)::int AS comment_count
+      FROM comments
+      WHERE author_id = $1 AND is_deleted = FALSE
+    `;
+    
+    try {
+      const result = await pool.query(query, [userId]);
+      return result.rows[0].comment_count;
+    } catch (error) {
+      console.error('Error getting user comment count:', error);
+      throw error;
+    }
+  }
+
   // Get comment count for a post
   static async getCommentCount(postId) {
     const query = `
