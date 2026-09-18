@@ -7,7 +7,12 @@ const router = express.Router();
 // Public routes
 router.get('/', AuthMiddleware.optionalAuth, PostController.getFeed);
 router.get('/search', PostController.search);
+router.get('/community/:communityId',
+  AuthMiddleware.optionalAuth,
+  PostController.getCommunityPosts
+);
 router.get('/:id', AuthMiddleware.optionalAuth, PostController.getById);
+
 
 // Protected routes
 router.post('/', 

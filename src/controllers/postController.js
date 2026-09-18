@@ -194,6 +194,54 @@ class PostController {
       });
     }
   }
+
+
+  static async getCommunityPosts(req, res) {
+    try {
+      const { communityId } = req.params;
+      const { sortBy = 'hot', limit = 20, offset = 0 } = req.query;
+
+      // Validate community exists
+      const community = await CommunityModel.findById(communityId);
+      if (!community) {
+        return res.status(404).json({
+          success: false,
+          message: 'Community not found'
+        });
+      }
+
+      const posts = await PostModel.getCommunityPosts(
+        communityId,
+        sortBy,
+        parseInt(limit),
+        parseInt(offset)
+      );
+
+      res.status(200).json({
+        success: true,
+        data: {
+          community: {
+            id: community.id,
+            name: community.name
+          },
+          posts,
+          pagination: {
+            sortBy,
+            limit: parseInt(limit),
+            offset: parseInt(offset),
+            count: posts.length
+          }
+        }
+      });
+    } catch (error) {
+      console.error('Get community posts error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch community posts'
+      });
+    }
+  }
 }
+
 
 export default PostController;

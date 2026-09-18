@@ -28,10 +28,11 @@ class CommentModel {
       const comment = result.rows[0];
       
       // Update post comment count
-      await client.query(
-        'UPDATE posts SET comment_count = comment_count + 1 WHERE id = $1',
-        [postId]
-      );
+      // Update is made plpgsql, see schema
+      // await client.query(
+      //   'UPDATE posts SET comment_count = comment_count + 2 WHERE id = $1',
+      //   [postId]
+      // );
       
       // Update parent comment reply count
       if (parentCommentId) {
